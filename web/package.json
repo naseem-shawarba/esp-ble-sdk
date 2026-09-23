@@ -1,0 +1,30 @@
+{
+  "name": "esp-ble-sdk",
+  "version": "0.1.0-beta.1",
+  "description": "A typed TypeScript SDK for talking to ESP32 devices over Web Bluetooth, with a matching Arduino/ESP-IDF firmware library and npm library.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "firmware"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/web-bluetooth": "^0.0.20",
+    "@types/react": "^18.2.0"
+  },
+  "license": "MIT",
+  "keywords": ["esp32", "bluetooth", "web-bluetooth", "ble", "iot", "arduino"]
+}

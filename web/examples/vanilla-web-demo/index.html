@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>esp-ble-sdk demo</title>
+<style>
+  :root {
+    --bg: #0f1113;
+    --panel: #17191c;
+    --border: #2a2d31;
+    --text: #e7e9ea;
+    --muted: #8a8f96;
+    --accent: #5fb0ff;
+    --good: #4ade80;
+    --bad: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  main { width: 100%; max-width: 480px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 28px; font-size: 13px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 16px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
+  .dot.on { background: var(--good); }
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    padding: 9px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  pre {
+    background: #0b0c0e;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    min-height: 20px;
+    overflow-x: auto;
+  }
+  .row { margin-top: 16px; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>esp-ble-sdk demo</h1>
+  <p class="sub">Requires Chrome or Edge, served over https:// or localhost.</p>
+
+  <div class="panel">
+    <div class="status">
+      <span id="dot" class="dot"></span>
+      <span id="status-text">Not connected</span>
+    </div>
+    <button id="connect">Connect</button>
+    <button id="arm" disabled>Arm</button>
+    <button id="disarm" disabled>Disarm</button>
+    <button id="log-hello" disabled>Log Hello World</button>
+
+    <div class="row">
+      <label for="brightness">Brightness (<span id="brightness-value">0.5</span>)</label>
+      <input id="brightness" type="range" min="0" max="1" step="0.1" value="0.5" disabled />
+      <button id="set-brightness" disabled>Set Brightness</button>
+    </div>
+
+    <div class="row">
+      <pre id="telemetry">Waiting for telemetry…</pre>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { ESPBLEDevice } from '../../dist/index.js';
+
+  const device = new ESPBLEDevice({ namePrefix: 'ESP-' });
+
+  const dot = document.getElementById('dot');
+  const statusText = document.getElementById('status-text');
+  const telemetryEl = document.getElementById('telemetry');
+  const connectBtn = document.getElementById('connect');
+  const armBtn = document.getElementById('arm');
+  const disarmBtn = document.getElementById('disarm');
+  const logHelloBtn = document.getElementById('log-hello');
+  const brightnessInput = document.getElementById('brightness');
+  const brightnessValue = document.getElementById('brightness-value');
+  const setBrightnessBtn = document.getElementById('set-brightness');
+
+  device.addEventListener('connected', () => {
+    dot.classList.add('on');
+    statusText.textContent = 'Connected';
+    armBtn.disabled = false;
+    disarmBtn.disabled = false;
+    logHelloBtn.disabled = false;
+    brightnessInput.disabled = false;
+    setBrightnessBtn.disabled = false;
+  });
+
+  device.addEventListener('disconnected', () => {
+    dot.classList.remove('on');
+    statusText.textContent = 'Disconnected';
+    armBtn.disabled = true;
+    disarmBtn.disabled = true;
+    logHelloBtn.disabled = true;
+    brightnessInput.disabled = true;
+    setBrightnessBtn.disabled = true;
+  });
+
+  device.onTelemetry((data) => {
+    telemetryEl.textContent = JSON.stringify(data, null, 2);
+  });
+
+  connectBtn.addEventListener('click', () => device.connect().catch(console.error));
+  armBtn.addEventListener('click', () => device.sendCommand('armAlarm').catch(console.error));
+  disarmBtn.addEventListener('click', () => device.sendCommand('disarmAlarm').catch(console.error));
+  logHelloBtn.addEventListener('click', () => device.sendCommand('logHelloWorld').catch(console.error));
+  brightnessInput.addEventListener('input', () => {
+    brightnessValue.textContent = brightnessInput.value;
+  });
+  setBrightnessBtn.addEventListener('click', () =>
+    device.sendCommand('setBrightness', { value: Number(brightnessInput.value) }).catch(console.error)
+  );
+</script>
+</body>
+</html>
