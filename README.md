@@ -1,5 +1,8 @@
 # esp-ble-sdk
 
+[![npm version](https://img.shields.io/npm/v/esp-ble-sdk.svg)](https://www.npmjs.com/package/esp-ble-sdk)
+[![license](https://img.shields.io/npm/l/esp-ble-sdk.svg)](https://github.com/naseem-shawarba/esp-ble-sdk/blob/main/LICENSE)
+
 A typed SDK for building web apps that talk directly to an ESP32 over Bluetooth
 Low Energy. No phone app, no cloud account, no native code. A small
 Arduino/ESP-IDF firmware library on one side, a TypeScript client on the
@@ -125,7 +128,7 @@ examples/react-web-demo && npm install && npm run dev`.
 ### 3. Or use the React hook
 
 ```tsx
-import { useESPBLEDevice } from 'esp-ble-sdk/react/useESPBLEDevice';
+import { useESPBLEDevice } from 'esp-ble-sdk';
 
 function SmartHomePanel() {
   const { connected, telemetry, connect, sendCommand } =
