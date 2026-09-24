@@ -1,10 +1,11 @@
 import {
+  CONNECT_TIMEOUT_MS,
   DEFAULT_COMMAND_CHARACTERISTIC_UUID,
   DEFAULT_SERVICE_UUID,
   DEFAULT_TELEMETRY_CHARACTERISTIC_UUID,
 } from "./constants";
 import { ESPBLEDeviceOptions, Telemetry, TelemetryHandler } from "./types";
-import { delay } from "./utils";
+import { delay, withTimeout } from "./utils";
 
 /**
  * A typed client for talking to an ESP32 device running the matching
@@ -50,28 +51,35 @@ export class ESPBLEDevice<T = Telemetry> extends EventTarget {
   async connect(): Promise<void> {
     this.userDisconnected = false;
 
-    this.device = await navigator.bluetooth.requestDevice({
-      filters: this.options.namePrefix
-        ? [
-            {
-              namePrefix: this.options.namePrefix,
-              services: [this.serviceUUID],
-            },
-          ]
-        : [{ services: [this.serviceUUID] }],
-    });
+    try {
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: this.options.namePrefix
+          ? [
+              {
+                namePrefix: this.options.namePrefix,
+                services: [this.serviceUUID],
+              },
+            ]
+          : [{ services: [this.serviceUUID] }],
+      });
 
-    this.device.addEventListener(
-      "gattserverdisconnected",
-      this.handleUnexpectedDisconnect,
-    );
+      this.device.addEventListener(
+        "gattserverdisconnected",
+        this.handleUnexpectedDisconnect,
+      );
 
-    await this.openGattConnection();
+      await this.openGattConnection();
+    } catch (error) {
+      console.error("ESPBLEDevice: connect() failed", error);
+      this.dispatchEvent(new CustomEvent("error", { detail: error }));
+      throw error;
+    }
   }
 
   /** Closes the connection and stops any automatic reconnect attempts. */
   disconnect(): void {
     this.userDisconnected = true;
+    this.reconnectAttempts = 0;
     this.dispatchEvent(new Event("disconnected"));
     this.device?.gatt?.disconnect();
   }
@@ -103,7 +111,11 @@ export class ESPBLEDevice<T = Telemetry> extends EventTarget {
       throw new Error("ESPBLEDevice: no device selected.");
     }
 
-    this.server = await this.device.gatt.connect();
+    this.server = await withTimeout(
+      this.device.gatt.connect(),
+      CONNECT_TIMEOUT_MS,
+      "ESPBLEDevice: timed out connecting to GATT server.",
+    );
     const service = await this.server.getPrimaryService(this.serviceUUID);
 
     this.telemetryChar = await service.getCharacteristic(this.telemetryUUID);
@@ -143,14 +155,25 @@ export class ESPBLEDevice<T = Telemetry> extends EventTarget {
   };
 
   private async attemptReconnect(): Promise<void> {
+    if (this.userDisconnected) {
+      return;
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       this.dispatchEvent(new Event("reconnect-failed"));
       return;
     }
 
+    console.log("attemp before delay",this.reconnectAttempts)
     this.reconnectAttempts += 1;
     const delayMs = Math.min(1000 * 2 ** this.reconnectAttempts, 10_000);
     await delay(delayMs);
+    console.log("attemp after delay")
+
+
+    if (this.userDisconnected) {
+      return;
+    }
 
     try {
       await this.openGattConnection();
