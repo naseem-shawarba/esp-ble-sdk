@@ -72,6 +72,7 @@ export class ESPBLEDevice<T = Telemetry> extends EventTarget {
   /** Closes the connection and stops any automatic reconnect attempts. */
   disconnect(): void {
     this.userDisconnected = true;
+    this.dispatchEvent(new Event("disconnected"));
     this.device?.gatt?.disconnect();
   }
 
