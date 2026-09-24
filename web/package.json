@@ -8,8 +8,14 @@
     "dist",
     "firmware"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naseem-shawarba/esp-ble-sdk.git",
+    "directory": "web"
+  },
   "scripts": {
     "build": "tsc",
+    "prepack": "cp ../README.md .",
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
@@ -26,5 +32,12 @@
     "@types/react": "^18.2.0"
   },
   "license": "MIT",
-  "keywords": ["esp32", "bluetooth", "web-bluetooth", "ble", "iot", "arduino"]
+  "keywords": [
+    "esp32",
+    "bluetooth",
+    "web-bluetooth",
+    "ble",
+    "iot",
+    "arduino"
+  ]
 }
