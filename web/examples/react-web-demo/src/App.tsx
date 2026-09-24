@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useESPBLEDevice } from "../../../dist";
+import { useESPBLEDevice } from "esp-ble-sdk";
 import styles from "./App.module.css";
 
 type SmartHomeTelemetry = {
