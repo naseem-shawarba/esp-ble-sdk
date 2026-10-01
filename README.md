@@ -9,6 +9,10 @@ Arduino/ESP-IDF firmware library on one side, a TypeScript client on the
 other, both already speaking the same protocol so you're not hand-matching
 UUIDs and parsing raw byte arrays every time.
 
+# Demo
+
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/b3c93978-ef6d-4748-b6b5-54482245aed9" />
+
 ## Why this exists
 
 Every ESP32 + Web Bluetooth tutorial has you doing the same thing from
